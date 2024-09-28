@@ -3,7 +3,7 @@ import youtube_dl
 import random
 import string
 import ffmpeg
-from spleeter.separator import Separator
+from spleeter import separator
 
 app = FastAPI()
 
