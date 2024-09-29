@@ -17,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def split_audio(source_audio: UploadFile):
     filename = "".join(random.choices(string.ascii_letters, k=8)) + ".mp3"
     with open(filename, "wb") as f:
-        f.write(source_audio.read())
+        f.write(await source_audio.read())
 
     demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", filename, "-o", filename])
 
