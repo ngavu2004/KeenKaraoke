@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.staticfiles import StaticFiles
 import random
 import string
-import demucs.api
+import demucs.separate
 import os
 from time import sleep
 
