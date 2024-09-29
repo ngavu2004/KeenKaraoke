@@ -8,10 +8,10 @@ from time import sleep
 
 app = FastAPI()
 # Initialize with default parameters:
-separator = demucs.api.Separator()
+#separator = demucs.api.Separator()
 
 # Use another model and segment:
-separator = demucs.api.Separator(model="mdx_extra")
+#separator = demucs.api.Separator(model="mdx_extra")
 
 import os
 if not os.path.exists("static"):
