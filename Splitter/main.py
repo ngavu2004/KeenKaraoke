@@ -4,6 +4,7 @@ import random
 import string
 import demucs.api
 import os
+from time import sleep
 
 app = FastAPI()
 # Initialize with default parameters:
@@ -24,12 +25,18 @@ async def split_audio(source_audio: UploadFile):
     with open(filename, "wb") as f:
         f.write(await source_audio.read())
 
-    origin, separated = separator.separate_audio_file(filename)
-    for file, sources in separated:
-        for stem, source in sources.items():
-            demucs.api.save_audio(source, f"{stem}_{file}", samplerate=separator.samplerate)
-    #demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", filename, "-o", filename])
-
-    os.rename(filename + "/mdx_extra/song/no_vocals.mp3", "static/" + filename)
-    os.remove(filename)
+    #origin, separated = separator.separate_audio_file(filename)
+    #for file, sources in separated:
+    #    for stem, source in sources.items():
+    #        demucs.api.save_audio(source, f"{stem}_{file}", samplerate=separator.samplerate)
+    demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", filename, "-o", filename])
+    while True:
+        try:
+            sleep(10)
+            os.rename(filename + "/mdx_extra/song/no_vocals.mp3", "static/" + filename)
+            os.remove(filename)
+        except Exception as e:
+            print(".", endl="")
+            continue
+        break
     return "static/" + filename
