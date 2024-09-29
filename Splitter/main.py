@@ -29,11 +29,11 @@ async def split_audio(source_audio: UploadFile):
     #for file, sources in separated:
     #    for stem, source in sources.items():
     #        demucs.api.save_audio(source, f"{stem}_{file}", samplerate=separator.samplerate)
-    demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", filename, "-o", filename])
+    demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", filename, "-o", filename + "_out"])
     while True:
         try:
             sleep(10)
-            os.rename(filename + "/mdx_extra/song/no_vocals.mp3", "static/" + filename)
+            os.rename(filename + "_out/mdx_extra/song/no_vocals.mp3", "static/" + filename)
             os.remove(filename)
         except Exception as e:
             print(".", endl="")
