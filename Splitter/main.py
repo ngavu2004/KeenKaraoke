@@ -34,10 +34,16 @@ async def split_audio(source_audio: UploadFile):
     while True:
         try:
             sleep(10)
-            os.rename(filename + f"_out/mdx_extra/{random_string}/no_vocals.mp3", "static/" + filename)
+            no_vocals_filename = "static/" + random_string + "_no_vocals.mp3"
+            vocals_filename = "static" + random_string + "_vocals.mp3"
+            os.rename(filename + f"_out/mdx_extra/{random_string}/no_vocals.mp3", no_vocals_filename)
+            os.rename(filename + f"_out/mdx_extra/{random_string}/vocals.mp3", vocals_filename)
             os.remove(filename)
         except Exception as e:
             print(".", endl="")
             continue
         break
-    return "static/" + filename
+    return {
+        "no_vocals": no_vocals_filename,
+        "vocals": vocals_filename,
+    }
