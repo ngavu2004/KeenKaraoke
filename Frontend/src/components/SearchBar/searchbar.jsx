@@ -9,7 +9,7 @@ const SearchBar = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (query.trim()) {
-            navigate(`/lyrics/${query}`);
+            navigate(`/lyrics`);
         }
     };
 

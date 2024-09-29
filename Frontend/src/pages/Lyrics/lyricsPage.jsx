@@ -53,13 +53,12 @@ const LyricsPage = () => {
     >
       <div className={styles.lyricsContainer}>
         <h2 className={styles.title}>Song Lyrics</h2>
-        <div className={styles.lyrics}>{renderLyrics()}</div>
-
         {/* Audio player to play the instrumental file */}
         <audio ref={audioRef} controls>
           <source src={instrumental} type="audio/mp3" />
           Your browser does not support the audio element.
         </audio>
+        <div className={styles.lyrics}>{renderLyrics()}</div>
       </div>
     </div>
   );
