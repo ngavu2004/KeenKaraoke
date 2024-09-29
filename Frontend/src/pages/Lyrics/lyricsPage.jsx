@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import lyricsData from '../../song.json'; // Import the JSON file
 import styles from './lyricsPage.module.css';
+import backgroundImage from "../../image.png"; // Ensure this path is correct
 
 const LyricsPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
@@ -26,7 +27,7 @@ const LyricsPage = () => {
             opacity: isCurrent ? 1 : 0.5,
             transition: 'opacity 0.5s ease-in-out',
             fontSize: isCurrent ? '30px' : '20px',
-            color: 'white', // Ensure lyrics are visible over background
+            color: 'white', // Ensure lyrics are visible
           }}
         >
           {lyric.line}
@@ -36,9 +37,14 @@ const LyricsPage = () => {
   };
 
   return (
-    <div className={styles.container} style={{ backgroundImage: `url(${lyricsData.image})` }}>
-      <h2 className={styles.title}>Song Lyrics</h2>
-      <div className={styles.lyrics}>{renderLyrics()}</div>
+    <div
+      className={styles.container}
+      style={{ backgroundImage: `url(${backgroundImage})` }} // Proper background image handling
+    >
+      <div className={styles.lyricsContainer}>
+        <h2 className={styles.title}>Song Lyrics</h2>
+        <div className={styles.lyrics}>{renderLyrics()}</div>
+      </div>
     </div>
   );
 };
