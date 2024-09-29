@@ -21,7 +21,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/split_audio")
 async def split_audio(source_audio: UploadFile):
-    filename = "".join(random.choices(string.ascii_letters, k=8)) + ".mp3"
+    random_string = "".join(random.choices(string.ascii_letters, k=8))
+    filename = randome_string+".mp3"
     with open(filename, "wb") as f:
         f.write(await source_audio.read())
 
@@ -33,7 +34,7 @@ async def split_audio(source_audio: UploadFile):
     while True:
         try:
             sleep(10)
-            os.rename(filename + "_out/mdx_extra/song/no_vocals.mp3", "static/" + filename)
+            os.rename(filename + f"_out/mdx_extra/{random_string}/no_vocals.mp3", "static/" + filename)
             os.remove(filename)
         except Exception as e:
             print(".", endl="")
