@@ -22,7 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.post("/split_audio")
 async def split_audio(source_audio: UploadFile):
     random_string = "".join(random.choices(string.ascii_letters, k=8))
-    filename = randome_string+".mp3"
+    filename = random_string+".mp3"
     with open(filename, "wb") as f:
         f.write(await source_audio.read())
 
