@@ -3,7 +3,7 @@ import youtube_dl
 import random
 import string
 import ffmpeg
-from spleeter import separator
+from spleeter.separator import Separator
 
 app = FastAPI()
 
@@ -19,7 +19,8 @@ async def fetch_audio(youtube_url: str):
         ydl.download([youtube_url])
 
     audio = ffmpeg.input(filename).audio
+    ffmpeg.output(audio, filename+".mp3").run()
 
-    prediction = separator.separate(audio)
-    print(prediction)
+    separator = Separator("spleeter:2stems")
+    separator.separate_to_file(filename+".mp3", 'test')
     #ffmpeg.output(audio, filename+".mp3").run()
