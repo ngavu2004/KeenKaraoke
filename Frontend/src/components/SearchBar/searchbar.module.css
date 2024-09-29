@@ -1,0 +1,33 @@
+.search-form {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    justify-content: space-between; /* Space between input and button */
+    align-items: center; /* Align items vertically */
+    background-color: rgba(255, 255, 255, 0.8); /* Light background for contrast */
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Optional shadow */
+}
+
+.search-input {
+    flex: 1; /* Takes all available space */
+    border: none; /* Remove default border */
+    padding: 10px;
+    border-radius: 5px; /* Rounded corners */
+    margin-right: 10px; /* Space between input and button */
+    
+}
+
+.search-button {
+    background-color: #f1edef; /* Heart-themed color */
+    color: white; /* White text */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 15px; /* Button padding */
+    cursor: pointer; /* Pointer on hover */
+}
+
+.search-button:hover {
+    background-color: #ff1493; /* Darker shade on hover */
+}

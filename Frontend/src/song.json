@@ -1,0 +1,13 @@
+{
+    "lyrics": [
+        {
+            "timestamp": 0,
+            "line": "Count up the bands sticking out"
+        },
+        {
+            "timestamp": 10,
+            "line": "No rubber band is big enough"
+        }
+    ],
+    "image": "path/to/image.png"
+}

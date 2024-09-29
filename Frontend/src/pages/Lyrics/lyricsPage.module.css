@@ -1,0 +1,44 @@
+.container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center; /* Center horizontally */
+    padding-top: 50px; /* Add padding to push title/lyrics down */
+  }
+  
+  .title {
+    color: white;
+    font-size: 50px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    text-align: center; /* Ensure text is centered */
+  }
+  
+  .lyrics {
+    text-align: center;
+    font-size: 30px;
+    line-height: 1.5;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    margin-top: 10px;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .lyrics div {
+    animation: fadeIn 1s ease-in-out;
+  }
+  
