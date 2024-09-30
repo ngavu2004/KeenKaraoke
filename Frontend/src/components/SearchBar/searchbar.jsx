@@ -9,6 +9,7 @@ const SearchBar = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (query.trim()) {
+            localStorage.setItem("url", query)
             navigate(`/lyrics`);
         }
     };

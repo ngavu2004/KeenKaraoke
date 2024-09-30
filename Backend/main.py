@@ -8,43 +8,41 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
-from spleeter.separator import Separator
 from urllib.parse import urlparse
 import os
+import aiohttp
+import asyncio
+import io
+import redis
+import json
+import requests
+
+
+OPEN_AI_API_KEY = None
+AWS_KEY_ID = None
+AWS_KEY_SECRET = None
+
+if None in [OPEN_AI_API_KEY, AWS_KEY_ID, AWS_KEY_SECRET]:
+    raise Exception("One of the API Keys is missing")
 
 app = FastAPI()
-my_config = Config(
-    region_name = 'us-west-2',
-)
 logger = logging.getLogger(__name__)
+r = redis.Redis(host="localhost", port=6379, db=0)
+
+s3_client = boto3.client(
+    "s3",
+    region_name="us-west-2",
+    aws_access_key_id=AWS_KEY_ID,
+    aws_secret_access_key=AWS_KEY_SECRET,
+)
+
 
 def extract_bucket_and_key(s3_uri):
     parsed_uri = urlparse(s3_uri)
     bucket_name = parsed_uri.netloc
-    key = parsed_uri.path.lstrip('/')
+    key = parsed_uri.path.lstrip("/")
     return bucket_name, key
 
-def generate_presigned_url(s3_client, client_method, method_parameters, expires_in):
-    """
-    Generate a presigned Amazon S3 URL that can be used to perform an action.
-
-    :param s3_client: A Boto3 Amazon S3 client.
-    :param client_method: The name of the client method that the URL performs.
-    :param method_parameters: The parameters of the specified client method.
-    :param expires_in: The number of seconds the presigned URL is valid for.
-    :return: The presigned URL.
-    """
-    try:
-        url = s3_client.generate_presigned_url(
-            ClientMethod=client_method, Params=method_parameters, ExpiresIn=expires_in
-        )
-        logger.info("Got presigned URL: %s", url)
-    except ClientError:
-        logger.exception(
-            "Couldn't get a presigned URL for client method '%s'.", client_method
-        )
-        raise
-    return url
 
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
@@ -60,60 +58,71 @@ def upload_file(file_name, bucket, object_name=None):
         object_name = os.path.basename(file_name)
 
     # Upload the file
-    s3_client = boto3.client('s3', config=my_config)
+
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
-        
+
     except ClientError as e:
         logging.error(e)
         return False
     return True
 
-def transcribe_file(job_name, file_uri, transcribe_client):
-    transcribe_client.start_transcription_job(
-        TranscriptionJobName=job_name,
-        Media={"MediaFileUri": file_uri},
-        MediaFormat="wav",
-        LanguageCode="en-US",
-    )
-
-    max_tries = 60
-    while max_tries > 0:
-        max_tries -= 1
-        job = transcribe_client.get_transcription_job(TranscriptionJobName=job_name)
-        job_status = job["TranscriptionJob"]["TranscriptionJobStatus"]
-        if job_status in ["COMPLETED", "FAILED"]:
-            print(f"Job {job_name} is {job_status}.")
-            if job_status == "COMPLETED":
-                print(
-                    f"Download the transcript from\n"
-                    f"\t{job['TranscriptionJob']['Transcript']['TranscriptFileUri']}."
-                )
-                bucket, key = extract_bucket_and_key(job['TranscriptionJob']['Transcript']['TranscriptFileUri'])
-                presigned_url = generate_presigned_url(transcribe_client,"get_object",{"Bucket": bucket, "Key": key})
-                return presigned_url
-            break
-        else:
-            print(f"Waiting for {job_name}. Current status is {job_status}.")
-        time.sleep(10)
 
 @app.get("/fetch_audio")
 async def fetch_audio(youtube_url: str):
-    filename = "".join(random.choices(string.ascii_letters, k=8)) + ".mp4"
-    ydl_opts = {
-        "format": "mp4",
-        "verbose": True,
-        "outtmpl": filename
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([youtube_url])
+    async with aiohttp.ClientSession() as sess:
+        k = r.get(youtube_url)
+        if k is None:
+            filename = "".join(random.choices(string.ascii_letters, k=8)) + ".mp4"
+            ydl_opts = {"format": "mp4", "verbose": True, "outtmpl": filename}
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([youtube_url])
 
-    audio = ffmpeg.input(filename).audio
-    ffmpeg.output(audio, filename+".mp3").run()
-    upload_file(filename+".mp3","karaoketranscribejob")
-    transcribe_client = boto3.client("transcribe")
-    file_uri = f's3://karaoketranscribejob/{filename+".mp3"}'
-    transcribe_url = transcribe_file("Transcribed_job", file_uri, transcribe_client)
-    return transcribe_url
-    #ffmpeg.output(audio, filename+".mp3").run()
+            audio = ffmpeg.input(filename).audio
+            ffmpeg.output(audio, filename + ".mp3").run()
 
+            split_audio_json = None
+            with open(filename + ".mp3", "rb") as f:
+                split_audio_response = await sess.post(
+                    "http://52.66.206.209:8000/split_audio",
+                    data={"source_audio": f},
+                    timeout=6000,
+                )
+                split_audio_json = await split_audio_response.json()
+            # k = {"filename": filename, "split_audio_json": split_audio_json}
+            # r.set(youtube_url, json.dumps(split_audio_json))
+        else:
+            k = json.loads(k)
+            return k
+
+        vocals_resp = requests.get(
+            "http://52.66.206.209:8000/" + split_audio_json["vocals"]
+        )
+        with open("vocals.mp3", "wb") as f:
+            f.write(vocals_resp.content)
+
+        f_ = open("vocals.mp3", "rb")
+
+        whisper_response = requests.post(
+            "https://api.openai.com/v1/audio/transcriptions",
+            files={
+                "file": f_,
+            },
+            headers={"Authorization": "Bearer " + OPEN_AI_API_KEY},
+            timeout=6000,
+            data=[
+                ("model", "whisper-1"),
+                ("response_format", "verbose_json"),
+                ("timestamp_granularities[]", "word"),
+                ("timestamp_granularities[]", "segment"),
+            ],
+        )
+        f_.close()
+        resp = {
+            "instrumentals": "http://52.66.206.209:8000/"
+            + split_audio_json["no_vocals"],
+            "transcription": whisper_response.json(),
+        }
+        r.set(youtube_url, json.dumps(resp))
+        return resp
+    # ffmpeg.output(audio, filename+".mp3").run()

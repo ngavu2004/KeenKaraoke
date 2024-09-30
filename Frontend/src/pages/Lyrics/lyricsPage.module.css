@@ -21,7 +21,7 @@
   text-align: center;
   height: 80%;
   width: 80%; 
-  overflow: hidden;
+  overflow: scroll;
   max-width: 800px; 
 }
 .title {

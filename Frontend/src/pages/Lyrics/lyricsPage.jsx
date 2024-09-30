@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import lyricsData from '../../assets/response.json'; // Import the JSON file
 import styles from './lyricsPage.module.css';
 import backgroundImage from "../../image.png"; // Ensure this path is correct
 import instrumental from '../../assets/instrumental.mp3'; // Import the audio file
+import { useParams } from 'react-router-dom';
 
 const LyricsPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef(null); // Reference for the audio element
+  const [lyricsData, setlyricsData] = useState(null)
+  const youtubeUrl = localStorage.getItem("url")
+  console.log(youtubeUrl)
 
   useEffect(() => {
-    const audio = audioRef.current;
+    fetch("http://10.152.44.202:8000/fetch_audio?youtube_url=" + youtubeUrl).then((resp) => resp.json()).then((resp) => {
 
+    const audio = new Audio(resp.instrumentals);
+    audio.play()
+    setlyricsData(resp.transcription)
     // Set up a listener to update the current time based on the audio's progress
     const updateCurrentTime = () => {
       setCurrentTime(audio.currentTime);
@@ -23,6 +29,8 @@ const LyricsPage = () => {
       // Clean up the event listener when the component is unmounted
       audio.removeEventListener('timeupdate', updateCurrentTime);
     };
+  })
+
   }, []);
 
   const renderLyrics = () => {
@@ -58,7 +66,7 @@ const LyricsPage = () => {
           <source src={instrumental} type="audio/mp3" />
           Your browser does not support the audio element.
         </audio>
-        <div className={styles.lyrics}>{renderLyrics()}</div>
+        <div className={styles.lyrics}>{lyricsData ? renderLyrics(): "loading"}</div>
       </div>
     </div>
   );
