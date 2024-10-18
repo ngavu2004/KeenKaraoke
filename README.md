@@ -20,6 +20,7 @@ To install the necessary dependencies, run the following commands:
 
 ```bash
 pip install -r requirements.txt
+```
 
 ## Features
 * Song Management: Easily add, remove, and manage your karaoke songs.
